@@ -7,7 +7,6 @@ from pynput.keyboard import Key
 import time
 from functools import partial
 
-
 special_keys = [Key.space, Key.esc, Key.alt, Key.alt_l, Key.alt_r,
                 Key.alt_gr, Key.backspace, Key.caps_lock, Key.cmd, Key.cmd_l,
                 Key.cmd_r, Key.ctrl, Key.ctrl_l, Key.ctrl_r, Key.delete,
@@ -86,6 +85,9 @@ class App(threading.Thread):
         self.label = None
         self.assign_killkey_button = None
         self.start_listener_button = None
+        self.mouse_setting_button0 = None
+        self.mouse_setting_button1 = None
+        self.mouse_setting_button2 = None
         self.start()
 
     def callback(self):
@@ -98,20 +100,22 @@ class App(threading.Thread):
         mouse_settings_frame = Frame(self.root)
         mouse_settings_frame.pack(side=RIGHT)
         self.mouse_setting_button0 = Button(mouse_settings_frame, text="listening for mouse movement",
-                                       command=partial(self.update_mouse_settings, 0), fg="green")
+                                            command=partial(self.update_mouse_settings, 0), fg="green")
         self.mouse_setting_button1 = Button(mouse_settings_frame, text="listening for mouse clicks",
-                                       command=partial(self.update_mouse_settings, 1), fg="green")
+                                            command=partial(self.update_mouse_settings, 1), fg="green")
         self.mouse_setting_button2 = Button(mouse_settings_frame, text="listening for mouse scrolls",
-                                       command=partial(self.update_mouse_settings, 2), fg="green")
+                                            command=partial(self.update_mouse_settings, 2), fg="green")
         self.mouse_setting_button0.pack(side=TOP)
         self.mouse_setting_button1.pack(side=TOP)
         self.mouse_setting_button2.pack(side=TOP)
         # Main controls
         self.label = Label(self.root, text="there is no killkey", fg="red")
         self.label.pack()
-        self.assign_killkey_button = Button(self.root, text="assign killkey", command=self.assign_killkey)
+        self.assign_killkey_button = Button(self.root, text="assign killkey",
+                                            command=self.assign_killkey)
         self.assign_killkey_button.pack()
-        self.start_listener_button = Button(self.root, text="start recording", command=self.start_listeners)
+        self.start_listener_button = Button(self.root, text="start recording",
+                                            command=self.start_listener_button_pressed)
         self.start_listener_button.pack()
         self.root.mainloop()
 
@@ -125,9 +129,12 @@ class App(threading.Thread):
 
     def update_label(self):
         if KEYBOARD.killkey is None:
-            self.label.config(text="listening for killkey", fg="black")
+            if self.listener_running:
+                self.label.config(text="listening for killkey", fg="black")
+            else:
+                self.label.config(text="there is no killkey", fg="red")
         else:
-            self.label.config(text=f"the kill key is {KEYBOARD.killkey}", fg="green")
+            self.label.config(text=f"the killkey is {KEYBOARD.killkey}", fg="green")
 
     def update_button(self):
         if self.listener_running:
@@ -135,7 +142,7 @@ class App(threading.Thread):
         else:
             self.start_listener_button.config(text="start recording")
 
-    def start_listeners(self):
+    def start_listener_button_pressed(self):
         # if listener is not running
         if not self.listener_running:
             if KEYBOARD.killkey is None:
@@ -148,8 +155,8 @@ class App(threading.Thread):
         else:
             self.listener_running = False
             self.update_button()
-            KEYBOARD.keyboard_listener.stop()
             MOUSE.mouse_listener.stop()
+            KEYBOARD.keyboard_listener.stop()
             MACRO_LOGGER.write_to_file()
 
     def assign_killkey(self):
@@ -166,6 +173,7 @@ class App(threading.Thread):
                 KEYBOARD.killkey = KEYBOARD.last_killkey
                 self.listener_running = False
                 self.update_button()
+                self.update_label()
                 KEYBOARD.keyboard_listener.stop()
             else:
                 self.listener_running = False
@@ -254,6 +262,7 @@ class Keyboard(threading.Thread):
                 MACRO_TIMER.active_keys.remove(key)
 
     def on_press_killkey(self, key):
+        self.killkey_set = True
         self.killkey = key
         self.keyboard_listener.stop()
         Connector(2)
