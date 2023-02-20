@@ -1,9 +1,22 @@
-# macro-maker
-This program makes macros, It was initially designed to automatically build houses in the sims until I realized I could make this both a macro maker/editor
-as well as add functionality for the sims autobuilder.
+#Macro Maker
 
-everything in this is a mess and unusable except test 4 which is actuall the main file. The GUI and methods within that are my next planned update as they could use some revision
+I started this project almost two years ago at this point as a tool to
+build houses in the sims by feeding dimensions into a command line and using
+pyautogui to build it. I eventually realized essentially I was producing an extremely
+basic version of a macro tool. That is when I scrapped the idea of a sims exclusive tool
+and began working on the Macro Maker. When I began work on the initial design of the 
+Macro Maker it was messy and redundant code. That was almost a year ago as of 17/February/2023,
+and I have developed a lot as a programmer and decided to come revisit one of my oldest projects.
 
-after the GUI is cleaned I will work on the logger since the logger is fairly one dimensional rn and wont work with mouse inputs very well, after the logger I will make the reader/parser
+Macro Maker is typed in python using: tkinter, pynput, JSON, time, and threading.
 
-and after all of that I will make the controller. I plan to have all of this finished by jan 10th
+Macro Maker records key presses and events chronologically while also recording duration
+allowing for near exact replication of user input.
+
+#Variables you may want to adjust:
+
+Listener.TempData.mouse_movement_buffer: used to space out recorded mouse movements
+as without this simply moving your mouse across a modern screen would record kilobytes of
+data that truly are not necessary. The default buffer is set to 20 movements which is
+not enough for me, I rarely record movement and struggle to think of a need for it, so I have
+mouse movement permanently disabled in my config file. which is a perfect segue to the config file.
