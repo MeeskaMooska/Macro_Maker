@@ -5,13 +5,13 @@ import threading
 import Utils
 timer = Utils.Timer()
 logger = Utils.Logger()
-interpreter = Utils.Interpreter()
 
 
 class TempData:
     def __init__(self):
         self.self = self
         self.logging_data = None
+        self.event_order = None
         self.settings = [True, True, True, True, True]
         self.killkey_type = int
         self.killkey = None
@@ -27,7 +27,6 @@ class Listener(threading.Thread):
 
     def configure_listener(self, settings):
         if len(settings) == 3:
-            print(settings)
             self.listener = pynput.mouse.Listener(on_move=settings_dict[settings[1]][0],
                                                   on_click=settings_dict[settings[0]][1],
                                                   on_scroll=settings_dict[settings[2]][2])
@@ -117,7 +116,7 @@ def on_press(key):
         if key == temp_data.killkey:
             kill_listeners()
 
-        elif key not in timer.active_keys:
+        elif key.char not in timer.active_keys:
             timer.record_start_time(key.char)
 
     except AttributeError:
@@ -142,6 +141,7 @@ def kill_listeners():
     temp_data.mouse_movement_i = 1
     timer.killkey_force_log(temp_data.settings)
     temp_data.logging_data = timer.logging_data
+    temp_data.event_order = timer.event_order
     timer.reset()
     keyboard_listener.stop_listener()
     mouse_listener.stop_listener()
