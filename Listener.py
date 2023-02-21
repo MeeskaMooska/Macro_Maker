@@ -4,7 +4,6 @@ from pynput import keyboard, mouse
 import threading
 import Utils
 timer = Utils.Timer()
-logger = Utils.Logger()
 
 
 class TempData:
@@ -40,7 +39,7 @@ class Listener(threading.Thread):
         self.listener = None
 
 
-temp_data = TempData()
+temporary_data = TempData()
 keyboard_listener = Listener()
 mouse_listener = Listener()
 
@@ -49,50 +48,50 @@ mouse_listener = Listener()
 # Killkey Mouse
 def killkey_on_move(x, y):
     mouse_listener.stop_listener()
-    temp_data.killkey = 67
-    temp_data.killkey_type = 3
+    temporary_data.killkey = 67
+    temporary_data.killkey_type = 3
 
 
 def killkey_on_click(x, y, button, pressed):
     mouse_listener.stop_listener()
-    temp_data.killkey = Utils.special_keys.index(button)
-    temp_data.killkey_type = 2
+    temporary_data.killkey = Utils.special_keys.index(button)
+    temporary_data.killkey_type = 2
 
 
 def killkey_on_scroll(x, y, dx, dy):
     mouse_listener.stop_listener()
-    temp_data.killkey = [dx, dy]
-    temp_data.killkey_type = 4
+    temporary_data.killkey = [dx, dy]
+    temporary_data.killkey_type = 4
 
 
 # Killkey Keyboard
 def killkey_on_press(key):
     keyboard_listener.stop_listener()
-    temp_data.killkey = key
+    temporary_data.killkey = key
     if key in Utils.special_keys:
-        temp_data.killkey_type = 0
+        temporary_data.killkey_type = 0
 
     else:
-        temp_data.killkey_type = 1
+        temporary_data.killkey_type = 1
 
 
 # Regular Listeners
 # Mouse Listeners
 def on_move(x, y):
-    if temp_data.killkey == 67:
+    if temporary_data.killkey == 67:
         kill_listeners()
 
-    elif temp_data.mouse_movement_i <= temp_data.mouse_movement_buffer:
-        temp_data.mouse_movement_i += 1
+    elif temporary_data.mouse_movement_i <= temporary_data.mouse_movement_buffer:
+        temporary_data.mouse_movement_i += 1
 
     else:
-        temp_data.mouse_movement_i = 1
+        temporary_data.mouse_movement_i = 1
         timer.record_event_time([x,y], 0)
 
 
 def on_click(x, y, button, pressed):
     special_key_index = Utils.special_keys.index(button)
-    if special_key_index == temp_data.killkey:
+    if special_key_index == temporary_data.killkey:
         kill_listeners()
 
     elif pressed:
@@ -103,7 +102,7 @@ def on_click(x, y, button, pressed):
 
 
 def on_scroll(x, y, dx, dy):
-    if type(temp_data.killkey) == list:
+    if type(temporary_data.killkey) == list:
         pass
 
     else:
@@ -113,7 +112,7 @@ def on_scroll(x, y, dx, dy):
 # Keyboard Listeners
 def on_press(key):
     try:
-        if key == temp_data.killkey:
+        if key == temporary_data.killkey:
             kill_listeners()
 
         elif key.char not in timer.active_keys:
@@ -138,10 +137,10 @@ def on_release(key):
 
 # This function is used to kill both listeners at the command of one function
 def kill_listeners():
-    temp_data.mouse_movement_i = 1
-    timer.killkey_force_log(temp_data.settings)
-    temp_data.logging_data = timer.logging_data
-    temp_data.event_order = timer.event_order
+    temporary_data.mouse_movement_i = 1
+    timer.killkey_force_log(temporary_data.settings)
+    temporary_data.logging_data = timer.logging_data
+    temporary_data.event_order = timer.event_order
     timer.reset()
     keyboard_listener.stop_listener()
     mouse_listener.stop_listener()

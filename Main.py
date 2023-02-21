@@ -17,16 +17,16 @@ class TempData:
         self.settings_data = [True, True, True, True, True]
         self.killkey = None
         self.thread_listener = None
-        self.logging_data = list
 
 
 # Initializes classes for use
-temp_data = TempData()
+temporary_data = TempData()
+editor_view = EditorView.EditorView()
 
 
 def assign_killkey_pressed():
-    Listener.temp_data.killkey = keyboard.Key.esc
-    Listener.temp_data.killkey_type = 1
+    Listener.temporary_data.killkey = keyboard.Key.esc
+    Listener.temporary_data.killkey_type = 1
     '''if tkinter.messagebox.askyesno("Question.", "Will a mouse entry be your killkey?") == 0:
         Listener.keyboard_listener.listener = keyboard.Listener(on_press=Listener.killkey_on_press, on_release=None)
         Listener.keyboard_listener.listener.start()
@@ -37,60 +37,65 @@ def assign_killkey_pressed():
         Listener.mouse_listener.listener.start()'''
 
 
-def listen_for_editor_view(editor_view):
-    while editor_view.running:
-        print(editor_view)
-        time.sleep(.5)
+def start_editor_view():
+    if editor_view.running:
+        tkinter.messagebox.showwarning("Error.", "An instance of Editor View is already running.")
     else:
-        temp_data.thread_listener = None
-        editorView = None
-        editorView.stop()
+        editor_view.logging_data = Interpreter(Listener.temporary_data.logging_data,
+                                               Listener.temporary_data.event_order).sort_chronologically_individually()
+        editor_view.running = True
+        editor_view.setup_gui()
 
 
 def listen_for_macro():
     while Listener.keyboard_listener.listener is not None or Listener.mouse_listener.listener is not None:
         time.sleep(.5)
     else:
-        temp_data.thread_listener = None
-        editorView = EditorView.EditorView(Interpreter(Listener.temp_data.logging_data,
-                               Listener.temp_data.event_order).sort_chronologically_individually())
-        editorView.start()
-        listen_for_editor_view(editorView)
+        temporary_data.thread_listener = None
+        new_macro_button.config(fg="black", text="New Macro")
+        start_editor_view()
 
 
 def new_macro_pressed():
-    if Listener.temp_data.killkey is None:
+    if editor_view.running:
+        tkinter.messagebox.showwarning("Error.", "Editor View is currently running, please close.")
+
+    elif Listener.keyboard_listener.listener is not None or Listener.mouse_listener.listener is not None:
+        tkinter.messagebox.showwarning("Error.", "A macro is already being recorded\n please finish recording before "
+                                                 "starting another listener.")
+
+    elif Listener.temporary_data.killkey is None:
         tkinter.messagebox.showwarning("Error.", "There is no assigned killkey.")
 
-    elif temp_data.settings_data[Listener.temp_data.killkey_type] is False:
-        print(temp_data.settings_data[Listener.temp_data.killkey_type])
-        print(temp_data.settings_data)
-        print(Listener.temp_data.killkey_type)
+    elif temporary_data.settings_data[Listener.temporary_data.killkey_type] is False:
+        print(temporary_data.settings_data[Listener.temporary_data.killkey_type])
+        print(temporary_data.settings_data)
+        print(Listener.temporary_data.killkey_type)
         tkinter.messagebox.showwarning("Error.", "The assigned killkey is muted by your settings\n"
                                                  "please adjust your settings or killkey accordingly.")
 
     else:
-        Listener.mouse_listener.configure_listener(temp_data.settings_data[2:5])
-        Listener.keyboard_listener.configure_listener(temp_data.settings_data[0:2])
+        Listener.mouse_listener.configure_listener(temporary_data.settings_data[2:5])
+        Listener.keyboard_listener.configure_listener(temporary_data.settings_data[0:2])
         new_macro_button.config(fg="green", text="Running")
-        temp_data.thread_listener = Thread(target=listen_for_macro)
-        temp_data.thread_listener.start()
+        temporary_data.thread_listener = Thread(target=listen_for_macro)
+        temporary_data.thread_listener.start()
 
 
 # Handles the press of settings buttons
 def settings_button_handler(e):
     # Changes setting
-    temp_data.settings_data[e] = not temp_data.settings_data[e]
-    Listener.temp_data.settings = temp_data.settings_data
+    temporary_data.settings_data[e] = not temporary_data.settings_data[e]
+    Listener.temporary_data.settings = temporary_data.settings_data
     # Sets color of button to indicate setting
-    settings_buttons[e].config(fg=foreground_dict[temp_data.settings_data[e]])
+    settings_buttons[e].config(fg=foreground_dict[temporary_data.settings_data[e]])
 
 
 def on_closing():
     try:
         Listener.mouse_listener.stop_listener()
         Listener.keyboard_listener.stop_listener()
-        temp_data.thread_listener = None
+        temporary_data.thread_listener = None
         root.destroy()
     except (NameError, AttributeError):
         root.destroy()

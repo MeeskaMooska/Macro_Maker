@@ -1,6 +1,7 @@
 import threading
 import time
 import json
+import os.path
 from pynput.keyboard import Key
 from pynput.mouse import Button
 
@@ -20,19 +21,15 @@ special_keys = [Button.left, Button.right, Button.middle, Button.x1, Button.x2, 
                 Key.print_screen, Key.scroll_lock]
 
 
-class Reader:
-    def __init__(self):
-        self.self = self
+def log_data_to_file(macro_name, data):
+    path = f"Macros/{macro_name}.json"
+    data = json.dumps(data, separators=(',', ':'), indent=5)
+    if os.path.exists(path):
+        open(f"Macros/{macro_name}.json", "w").write(data)
 
-
-class Logger:
-    def __init__(self):
-        self.self = self
-
-    def convert_data_to_JSON(self):
-        pass
-
-
+    else:
+        open(f"Macros/{macro_name}.json", "x")
+        open(f"Macros/{macro_name}.json", "w").write(data)
 
 
 class Timer:
