@@ -39,18 +39,19 @@ class Timer:
     def __init__(self):
         self.active_keys = []
         self.start_times = []
+        self.event_order = []
         # regular key, special key, click, move, scroll
-        self.logging_data = [[], [], [], [], [], []]
+        self.logging_data = [[], [], [], [], []]
 
     def record_start_time(self, key):
         self.active_keys.append(key)
         self.start_times.append(time.time())
         if type(key) == str:
-            self.logging_data[5].append(0)
+            self.event_order.append(0)
         elif key > 4:
-            self.logging_data[5].append(1)
+            self.event_order.append(1)
         else:
-            self.logging_data[5].append(2)
+            self.event_order.append(2)
 
     def record_end_time(self, key):
         index = self.active_keys.index(key)
@@ -67,10 +68,10 @@ class Timer:
     # This records singular events such as scrolls and movements.
     def record_event_time(self, event, event_type):
         if event_type == 0:
-            self.logging_data[5].append(3)
+            self.event_order.append(3)
             self.logging_data[3].append([time.time(), event])
         else:
-            self.logging_data[5].append(4)
+            self.event_order.append(4)
             self.logging_data[4].append([time.time(), event])
 
     def killkey_force_log(self, settings):
@@ -86,45 +87,45 @@ class Timer:
                 self.logging_data[2].append([self.start_times[index], duration, key])
         if not settings[0]:
             self.logging_data[0].clear()
-            self.logging_data[5] = list(filter((0).__ne__, self.logging_data[5]))
+            self.event_order = list(filter((0).__ne__, self.event_order))
         if not settings[1]:
             self.logging_data[1].clear()
-            self.logging_data[5] = list(filter((1).__ne__, self.logging_data[5]))
-        print(self.logging_data)
+            self.event_order = list(filter((1).__ne__, self.event_order))
 
     def reset(self):
         self.active_keys = []
         self.start_times = []
-        self.logging_data = [[], [], [], [], [], []]
+        self.logging_data = [[], [], [], [], []]
+        self.event_order = []
 
 
 class Interpreter:
-    '''
-    % is the time identifier
-    : is special key identifier
-    / is regular key identifier
-    | is untimed key identifier
-    $ is macro name identifier ex. _[$macro name$ if index -1 == [ is_name = True; else is_name = False
-    '''
-    def __init__(self):
-        self.name_builder = ""
-        self.is_name = False
+    def __init__(self, data, event_order):
+        self.self = self
+        self.data = data
+        self.event_order = event_order
+        self.sorted_list = []
 
-    def file_data(self):
-        file = open("test.txt", "r")
-        content = file.readlines()
+    def sort_chronologically_individually(self):
+        self.data[0] = sorted(self.data[0], key=lambda x: x[0])
+        self.data[1] = sorted(self.data[1], key=lambda x: x[0])
+        self.data[2] = sorted(self.data[2], key=lambda x: x[0])
+        return self.data
 
-        i = 0
-        while i < len(content):
-            for byte in content[i]:
-                if byte == '$':
-                    self.is_name = not self.is_name
-                    byte += 1
-                if self.is_name is True:
-                    print(byte)
-                    self.name_builder = self.name_builder + byte
-            i += 1
-        print(self.name_builder)
+    def sort_for_editor(self):
+        pass
 
-    def raw_data(self):
-        print("the intepreter is starting")
+    def sort_for_file(self):
+        pass
+
+    def sort_for_controller(self):
+        order_index = [0, 0, 0, 0, 0]
+        chronological_data = []
+
+        self.sort_chronologically_individually()
+
+        for count, arr in enumerate(self.event_order):
+            chronological_data.append(self.data[self.event_order[count]][order_index[self.event_order[count]]])
+            order_index[self.event_order[count]] += 1
+
+

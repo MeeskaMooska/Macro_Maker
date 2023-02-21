@@ -4,6 +4,8 @@ from threading import *
 from pynput import keyboard, mouse
 import time
 import Listener
+from Utils import Interpreter
+import EditorView
 
 # Utility variables (don't want to initialize everytime a function is called)
 foreground_dict = {True: "green", False: "red"}
@@ -14,13 +16,12 @@ class TempData:
         self.self = self
         self.settings_data = [True, True, True, True, True]
         self.killkey = None
-        self.listener_listener_thread = None
+        self.thread_listener = None
         self.logging_data = list
 
 
-# Initializes TempData for use
+# Initializes classes for use
 temp_data = TempData()
-Listener.temp_data.gui_temp_data = temp_data
 
 
 def assign_killkey_pressed():
@@ -37,13 +38,25 @@ def assign_killkey_pressed():
         Listener.mouse_listener.listener.start()'''
 
 
-def gui_listen_for_macro():
+def listen_for_editor_view(editor_view):
+    while editor_view.running:
+        print(editor_view)
+        time.sleep(.5)
+    else:
+        temp_data.thread_listener = None
+        editorView = None
+        editorView.stop()
+
+
+def listen_for_macro():
     while Listener.keyboard_listener.listener is not None or Listener.mouse_listener.listener is not None:
         time.sleep(.5)
     else:
-        temp_data.listener_listener_thread = None
-        print("this is where we start EditorView")
-
+        temp_data.thread_listener = None
+        editorView = EditorView.EditorView(Interpreter(Listener.temp_data.logging_data,
+                               Listener.temp_data.event_order).sort_chronologically_individually())
+        editorView.start()
+        listen_for_editor_view(editorView)
 
 
 def new_macro_pressed():
@@ -61,8 +74,8 @@ def new_macro_pressed():
         Listener.mouse_listener.configure_listener(temp_data.settings_data[2:5])
         Listener.keyboard_listener.configure_listener(temp_data.settings_data[0:2])
         new_macro_button.config(fg="green", text="Running")
-        temp_data.listener_listener_thread = Thread(target=gui_listen_for_macro)
-        temp_data.listener_listener_thread.start()
+        temp_data.thread_listener = Thread(target=listen_for_macro)
+        temp_data.thread_listener.start()
 
 
 # Handles the press of settings buttons
@@ -78,7 +91,7 @@ def on_closing():
     try:
         Listener.mouse_listener.stop_listener()
         Listener.keyboard_listener.stop_listener()
-        temp_data.listener_listener_thread = None
+        temp_data.thread_listener = None
         root.destroy()
     except (NameError, AttributeError):
         root.destroy()
@@ -131,5 +144,5 @@ settings_button_4.grid(row=4, column=0)
 
 # Calls root mainloop function
 root.protocol("WM_DELETE_WINDOW", on_closing)
-root.mainloop()
 
+root.mainloop()
