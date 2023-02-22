@@ -5,20 +5,20 @@ import os.path
 from pynput.keyboard import Key
 from pynput.mouse import Button
 
-
-special_keys = [Button.left, Button.right, Button.middle, Button.x1, Button.x2, Key.space, Key.esc, Key.alt, Key.alt_l,
-                Key.alt_r, Key.alt_gr, Key.backspace, Key.caps_lock, Key.cmd, Key.cmd_l,
-                Key.cmd_r, Key.ctrl, Key.ctrl_l, Key.ctrl_r, Key.delete,
-                Key.down, Key.end, Key.enter, Key.esc, Key.f1,
-                Key.f2, Key.f3, Key.f4, Key.f5, Key.f6,
-                Key.f7, Key.f8, Key.f9, Key.f10, Key.f11,
-                Key.f12, Key.f13, Key.f14, Key.f15, Key.f16,
-                Key.f17, Key.f18, Key.f19, Key.f20, Key.home,
-                Key.left, Key.page_down, Key.page_up, Key.right, Key.shift,
-                Key.shift_l, Key.shift_r, Key.space, Key.tab, Key.up,
-                Key.media_play_pause, Key.media_volume_mute, Key.media_volume_down, Key.media_volume_up,
-                Key.media_previous, Key.media_next, Key.insert, Key.menu, Key.num_lock, Key.pause,
-                Key.print_screen, Key.scroll_lock]
+special_keys = [Button.left, Button.right, Button.middle, Button.x1, Button.x2,
+                       Key.space, Key.esc, Key.alt, Key.alt_l,
+                       Key.alt_r, Key.alt_gr, Key.backspace, Key.caps_lock, Key.cmd, Key.cmd_l,
+                       Key.cmd_r, Key.ctrl, Key.ctrl_l, Key.ctrl_r, Key.delete,
+                       Key.down, Key.end, Key.enter, Key.esc, Key.f1,
+                       Key.f2, Key.f3, Key.f4, Key.f5, Key.f6,
+                       Key.f7, Key.f8, Key.f9, Key.f10, Key.f11,
+                       Key.f12, Key.f13, Key.f14, Key.f15, Key.f16,
+                       Key.f17, Key.f18, Key.f19, Key.f20, Key.home,
+                       Key.left, Key.page_down, Key.page_up, Key.right, Key.shift,
+                       Key.shift_l, Key.shift_r, Key.space, Key.tab, Key.up,
+                       Key.media_play_pause, Key.media_volume_mute, Key.media_volume_down, Key.media_volume_up,
+                       Key.media_previous, Key.media_next, Key.insert, Key.menu, Key.num_lock, Key.pause,
+                       Key.print_screen, Key.scroll_lock]
 
 
 def log_data_to_file(macro_name, data):
@@ -54,11 +54,11 @@ class Timer:
         index = self.active_keys.index(key)
         duration = time.time() - self.start_times[index]
         if type(key) == str:
-            self.logging_data[0].append([self.start_times[index], duration, key])
+            self.logging_data[0].append([round(self.start_times[index], 3), round(duration, 3), key])
         elif key > 4:
-            self.logging_data[1].append([self.start_times[index], duration, key])
+            self.logging_data[1].append([round(self.start_times[index], 3), round(duration, 3), key])
         else:
-            self.logging_data[2].append([self.start_times[index], duration, key])
+            self.logging_data[2].append([round(self.start_times[index], 3), round(duration, 3), key])
         self.active_keys.pop(index)
         self.start_times.pop(index)
 
@@ -66,10 +66,10 @@ class Timer:
     def record_event_time(self, event, event_type):
         if event_type == 0:
             self.event_order.append(3)
-            self.logging_data[3].append([time.time(), event])
+            self.logging_data[3].append([round(time.time(), 3), event])
         else:
             self.event_order.append(4)
-            self.logging_data[4].append([time.time(), event])
+            self.logging_data[4].append([round(time.time(), 3), event])
 
     def killkey_force_log(self, settings):
         end_time = time.time()
@@ -77,17 +77,20 @@ class Timer:
             index = self.active_keys.index(key)
             duration = end_time - self.start_times[index]
             if type(key) == str:
-                self.logging_data[0].append([self.start_times[index], duration, key])
+                self.logging_data[0].append([round(self.start_times[index], 3), round(duration, 3), key])
             elif key > 4:
-                self.logging_data[1].append([self.start_times[index], duration, key])
+                self.logging_data[1].append([round(self.start_times[index], 3), round(duration, 3), key])
             else:
-                self.logging_data[2].append([self.start_times[index], duration, key])
+                self.logging_data[2].append([round(self.start_times[index], 3), round(duration, 3), key])
+
         if not settings[0]:
             self.logging_data[0].clear()
             self.event_order = list(filter((0).__ne__, self.event_order))
         if not settings[1]:
             self.logging_data[1].clear()
             self.event_order = list(filter((1).__ne__, self.event_order))
+        print(self.event_order)
+        print(Interpreter(self.logging_data, self.event_order).sort_for_controller())
 
     def reset(self):
         self.active_keys = []
@@ -96,6 +99,7 @@ class Timer:
         self.event_order = []
 
 
+# Todo change this stuff up, its doesnt need to be done this way.
 class Interpreter:
     def __init__(self, data, event_order):
         self.self = self
@@ -125,4 +129,8 @@ class Interpreter:
             chronological_data.append(self.data[self.event_order[count]][order_index[self.event_order[count]]])
             order_index[self.event_order[count]] += 1
 
+        start_time = chronological_data[0][0]
+        for count, arr in enumerate(chronological_data):
+            arr[0] = round(arr[0] - start_time, 3)
 
+        return chronological_data

@@ -6,15 +6,17 @@ import Utils
 timer = Utils.Timer()
 
 
-class TempData:
+class TemporaryData:
     def __init__(self):
         self.self = self
         self.logging_data = None
         self.event_order = None
+        self.special_listener_type = None
+        self.bindings = []
         self.settings = [True, True, True, True, True]
         self.killkey_type = int
         self.killkey = None
-        self.mouse_movement_buffer = 100
+        self.mouse_movement_buffer = 101
         self.mouse_movement_i = 1
 
 
@@ -39,40 +41,74 @@ class Listener(threading.Thread):
         self.listener = None
 
 
-temporary_data = TempData()
+temporary_data = TemporaryData()
 keyboard_listener = Listener()
 mouse_listener = Listener()
 
 
-# Killkey Listeners
-# Killkey Mouse
-def killkey_on_move(x, y):
-    mouse_listener.stop_listener()
-    temporary_data.killkey = 67
-    temporary_data.killkey_type = 3
+# Special Listeners, listens for killkeys and bindings
+# Special Mouse
+def special_on_move(x, y):
+    if temporary_data.special_listener_type == 0:
+        mouse_listener.stop_listener()
+        temporary_data.killkey = 67
+        temporary_data.killkey_type = 3
+
+    elif temporary_data.special_listener_type == 1:
+        mouse_listener.stop_listener()
+        temporary_data.bindings.append(67)
+
+    else:
+        # bindings are active
+        if 67 in temporary_data.bindings:
+            print("executing macro")
 
 
-def killkey_on_click(x, y, button, pressed):
-    mouse_listener.stop_listener()
-    temporary_data.killkey = Utils.special_keys.index(button)
-    temporary_data.killkey_type = 2
+def special_on_click(x, y, button, pressed):
+    if temporary_data.special_listener_type == 0:
+        mouse_listener.stop_listener()
+        temporary_data.killkey = Utils.special_keys.index(button)
+        temporary_data.killkey_type = 2
+
+    elif temporary_data.special_listener_type == 1:
+        mouse_listener.stop_listener()
+        temporary_data.bindings.append(Utils.special_keys.index(button))
+
+    else:
+        pass
 
 
-def killkey_on_scroll(x, y, dx, dy):
-    mouse_listener.stop_listener()
-    temporary_data.killkey = [dx, dy]
-    temporary_data.killkey_type = 4
+def special_on_scroll(x, y, dx, dy):
+    if temporary_data.special_listener_type == 0:
+        mouse_listener.stop_listener()
+        temporary_data.killkey = [dx, dy]
+        temporary_data.killkey_type = 4
+
+    elif temporary_data.special_listener_type == 1:
+        mouse_listener.stop_listener()
+        temporary_data.bindings.append([dx, dy])
+
+    else:
+        pass
 
 
 # Killkey Keyboard
-def killkey_on_press(key):
-    keyboard_listener.stop_listener()
-    temporary_data.killkey = key
-    if key in Utils.special_keys:
-        temporary_data.killkey_type = 0
+def special_on_press(key):
+    if temporary_data.special_listener_type == 0:
+        keyboard_listener.stop_listener()
+        temporary_data.killkey = key
+        if key in Utils.special_keys:
+            temporary_data.killkey_type = 0
+
+        else:
+            temporary_data.killkey_type = 1
+
+    elif temporary_data.special_listener_type == 1:
+        keyboard_listener.stop_listener()
+        temporary_data.bindings.append(key)
 
     else:
-        temporary_data.killkey_type = 1
+        pass
 
 
 # Regular Listeners

@@ -1,3 +1,7 @@
+The code used to hold keys is from [PDF on stack](https://stackoverflow.com/a/73419630/17670556)
+without PDF I would have been forced to sacrifice one function or another of my program but thankfully his code
+was there to save the day so if you ever see this PDF thank you very much!
+
 #Macro Maker
 
 I started this project almost two years ago at this point as a tool to
@@ -17,6 +21,5 @@ allowing for near exact replication of user input.
 
 Listener.TempData.mouse_movement_buffer: used to space out recorded mouse movements
 as without this simply moving your mouse across a modern screen would record kilobytes of
-data that truly are not necessary. The default buffer is set to 20 movements which is
-not enough for me, I rarely record movement and struggle to think of a need for it, so I have
-mouse movement permanently disabled in my config file. which is a perfect segue to the config file.
+data that truly are not necessary. The default buffer is set to 101 movements because the buffer index
+is set to one and cannot be zero.
