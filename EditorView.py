@@ -1,8 +1,13 @@
 from tkinter import *
 import json
 import Utils
+import time
+import threading
+from pynput import keyboard, mouse
 import tkinter.messagebox
 from tkinter.simpledialog import askstring
+import Listener
+
 
 class EditorView:
     def __init__(self):
@@ -11,6 +16,9 @@ class EditorView:
         self.logging_data = None
         self.selected_index = None
         self.running = False
+        self.event_order = None
+        self.binding = None
+        self.thread_listener = None
 
         # Declaring all objects
         # Listbox
@@ -27,6 +35,7 @@ class EditorView:
         self.delete_selected_button = None
         self.start_time_entry = None
         self.duration_entry = None
+        self.binding_button = None
         self.save_button = None
         self.delete_button = None
 
@@ -62,6 +71,7 @@ class EditorView:
         Label(self.root, text="Duration:").grid(row=4, column=1)
         self.start_time_entry = Entry(self.root)
         self.duration_entry = Entry(self.root)
+        self.binding_button = Button(self.root, text="Binding", command=self.binding_button_pressed).grid(row=4, column=3)
         self.start_time_entry.grid(row=3, column=2)
         self.duration_entry.grid(row=4, column=2)
         self.save_button = Button(self.root, text="Save Macro", command=self.save_macro).grid(row=3, column=4)
@@ -73,14 +83,43 @@ class EditorView:
     def config_listbox(self):
         for count, data_list in enumerate(self.logging_data):
             for index, data in enumerate(data_list):
-                self.listbox_list[count].insert(index, data[-1])
+                if type(data[-1]) is int:
+                    self.listbox_list[count].insert(index, Utils.special_keys[data[-1]])
+
+                else:
+                    self.listbox_list[count].insert(index, data[-1])
 
     def selected_data(self, event):
         for count, listbox in enumerate(self.listbox_list):
             if listbox.curselection() != ():
                 self.selected_index = [self.listbox_list.index(listbox), listbox.curselection()[0]]
-                self.selected_data_label.config(text=str(self.logging_data[self.selected_index[0]][self.selected_index[1]]))
+                self.selected_data_label.config(text=str(self.logging_data[self.selected_index[0]]
+                                                         [self.selected_index[1]]))
                 break
+
+    def binding_button_pressed(self):
+        Listener.temporary_data.special_listener_type = 1
+        Listener.keyboard_listener.listener = keyboard.Listener(on_press=Listener.special_on_press, on_release=None)
+        Listener.mouse_listener.listener = mouse.Listener(on_move=Listener.special_on_move,
+                                                          on_click=Listener.special_on_click,
+                                                          on_scroll=Listener.special_on_scroll)
+        Listener.keyboard_listener.listener.start()
+        Listener.mouse_listener.listener.start()
+        self.thread_listener = threading.Thread(target=self.listen_for_binding)
+        self.thread_listener.start()
+
+    def listen_for_binding(self):
+        while Listener.keyboard_listener.listener is not None or Listener.mouse_listener.listener is not None:
+            time.sleep(.5)
+
+        else:
+            Listener.temporary_data.special_listener_type = None
+            self.binding = Listener.temporary_data.new_binding
+            print(type(self.binding))
+            Listener.temporary_data.bindings.append(Listener.temporary_data.new_binding)
+            Listener.temporary_data.new_binding = None
+            self.thread_listener = None
+            Utils.show_messagebox("NewBinding")
 
     def delete_selected(self):
         self.listbox_list[self.selected_index[0]].delete(self.selected_index[1])
@@ -89,12 +128,13 @@ class EditorView:
     def save_macro(self):
         macro_name = askstring("Macro Name", "What would you like to name your macro?",
                                parent=self.root)
-        print(macro_name)
-        if macro_name.strip() == "":
-            tkinter.messagebox.showwarning("Error.", "Macro Name cannot be blank.")
-            self.save_macro()
+        if macro_name.strip() == "" or self.binding is None:
+            tkinter.messagebox.showwarning("Error.", "Macro Name cannot be blank, and macros need bindings.")
+
         else:
             data = {
+                "event_order": self.event_order,
+                "binding": self.binding,
                 "regular_keys": self.logging_data[0],
                 "special_keys": self.logging_data[1],
                 "mouse_clicks": self.logging_data[2],

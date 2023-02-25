@@ -13,6 +13,7 @@ class MacroHandler:
         self.event_index = 0
 
     def execute_macro(self):
+        print(type(self.order),type(self.data))
         for i in range(len(self.order)):
             time.sleep(self.data[i][0] - self.last_start_time)
             self.last_start_time = self.data[i][0]
@@ -70,7 +71,7 @@ def mouse_input(button, duration):
     mouse_controller = mouse.Controller()
     mouse_controller.press(special_keys[button])
     time.sleep(duration)
-    mouse.release(special_keys[button])
+    mouse_controller.release(special_keys[button])
 
 
 def event_input(x, y, event_type):

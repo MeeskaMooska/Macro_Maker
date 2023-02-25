@@ -23,3 +23,8 @@ Listener.TempData.mouse_movement_buffer: used to space out recorded mouse moveme
 as without this simply moving your mouse across a modern screen would record kilobytes of
 data that truly are not necessary. The default buffer is set to 101 movements because the buffer index
 is set to one and cannot be zero.
+
+
+#Issues:
+For some reason when the binding is set it runs the NewBinding message twice.
+When holding ctrl and pressing A, a strange value is stored.

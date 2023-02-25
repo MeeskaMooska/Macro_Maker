@@ -2,23 +2,25 @@ import threading
 import time
 import json
 import os.path
+import tkinter.messagebox
+from tkinter import messagebox
 from pynput.keyboard import Key
 from pynput.mouse import Button
 
 special_keys = [Button.left, Button.right, Button.middle, Button.x1, Button.x2,
-                       Key.space, Key.esc, Key.alt, Key.alt_l,
-                       Key.alt_r, Key.alt_gr, Key.backspace, Key.caps_lock, Key.cmd, Key.cmd_l,
-                       Key.cmd_r, Key.ctrl, Key.ctrl_l, Key.ctrl_r, Key.delete,
-                       Key.down, Key.end, Key.enter, Key.esc, Key.f1,
-                       Key.f2, Key.f3, Key.f4, Key.f5, Key.f6,
-                       Key.f7, Key.f8, Key.f9, Key.f10, Key.f11,
-                       Key.f12, Key.f13, Key.f14, Key.f15, Key.f16,
-                       Key.f17, Key.f18, Key.f19, Key.f20, Key.home,
-                       Key.left, Key.page_down, Key.page_up, Key.right, Key.shift,
-                       Key.shift_l, Key.shift_r, Key.space, Key.tab, Key.up,
-                       Key.media_play_pause, Key.media_volume_mute, Key.media_volume_down, Key.media_volume_up,
-                       Key.media_previous, Key.media_next, Key.insert, Key.menu, Key.num_lock, Key.pause,
-                       Key.print_screen, Key.scroll_lock]
+                Key.space, Key.esc, Key.alt, Key.alt_l,
+                Key.alt_r, Key.alt_gr, Key.backspace, Key.caps_lock, Key.cmd, Key.cmd_l,
+                Key.cmd_r, Key.ctrl, Key.ctrl_l, Key.ctrl_r, Key.delete,
+                Key.down, Key.end, Key.enter, Key.esc, Key.f1,
+                Key.f2, Key.f3, Key.f4, Key.f5, Key.f6,
+                Key.f7, Key.f8, Key.f9, Key.f10, Key.f11,
+                Key.f12, Key.f13, Key.f14, Key.f15, Key.f16,
+                Key.f17, Key.f18, Key.f19, Key.f20, Key.home,
+                Key.left, Key.page_down, Key.page_up, Key.right, Key.shift,
+                Key.shift_l, Key.shift_r, Key.space, Key.tab, Key.up,
+                Key.media_play_pause, Key.media_volume_mute, Key.media_volume_down, Key.media_volume_up,
+                Key.media_previous, Key.media_next, Key.insert, Key.menu, Key.num_lock, Key.pause,
+                Key.print_screen, Key.scroll_lock]
 
 
 def log_data_to_file(macro_name, data):
@@ -30,6 +32,53 @@ def log_data_to_file(macro_name, data):
     else:
         open(f"Macros/{macro_name}.json", "x")
         open(f"Macros/{macro_name}.json", "w").write(data)
+
+
+def get_macro_from_file(path):
+    data = json.loads(open(path, 'r').read())
+    macro = [data['regular_keys'], data['special_keys'], data['mouse_clicks'],
+             data['mouse_moves'], data['mouse_scrolls']]
+    event_order = data['event_order']
+    binding = data['binding']
+    return [macro, event_order, binding]
+
+
+def get_binding_from_file(path):
+    with open(path, 'r') as f:
+        data = json.load(f)
+        return data['binding']
+
+
+def show_messagebox(message):
+    if message == "ListenerAlreadyRunning":
+        tkinter.messagebox.showerror("Error.",
+                                     "A macro is already being recorded\n please finish recording before "
+                                     "starting another listener.")
+
+    elif message == "EditorViewRunning":
+        tkinter.messagebox.showerror("Error.", "Editor View is currently running, please close.")
+
+    elif message == "NewKillkey":
+        tkinter.messagebox.showinfo("New Killkey.", "Your killkey has been assigned successfully.")
+
+    elif message == "NewBinding":
+        tkinter.messagebox.showinfo("New Binding.", "Your binding has been assigned successfully.")
+
+    elif message == "NoKillkey":
+        tkinter.messagebox.showerror("Error.", "There is no assigned killkey.")
+
+    elif message == "MutedKillkey":
+        tkinter.messagebox.showerror("Error.", "The assigned killkey is muted by your settings\n"
+                                               "please adjust your settings or killkey accordingly.")
+
+    elif message == "NoSelectedMacro":
+        tkinter.messagebox.showerror("Error.", "You must select a macro before deleting.")
+
+    elif message == "NoSelectedListItem":
+        tkinter.messagebox.showerror("Error.", "You must select a macro before you can edit.")
+
+    elif message == "NoMacroRecorded":
+        tkinter.messagebox.showerror("Error.", "No macro was recorded.")
 
 
 class Timer:
@@ -89,8 +138,6 @@ class Timer:
         if not settings[1]:
             self.logging_data[1].clear()
             self.event_order = list(filter((1).__ne__, self.event_order))
-        print(self.event_order)
-        print(Interpreter(self.logging_data, self.event_order).sort_for_controller())
 
     def reset(self):
         self.active_keys = []
@@ -112,12 +159,6 @@ class Interpreter:
         self.data[1] = sorted(self.data[1], key=lambda x: x[0])
         self.data[2] = sorted(self.data[2], key=lambda x: x[0])
         return self.data
-
-    def sort_for_editor(self):
-        pass
-
-    def sort_for_file(self):
-        pass
 
     def sort_for_controller(self):
         order_index = [0, 0, 0, 0, 0]

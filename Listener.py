@@ -2,6 +2,8 @@ from tkinter import *
 import pynput.keyboard
 from pynput import keyboard, mouse
 import threading
+import os
+from MacroHandler import MacroHandler
 import Utils
 timer = Utils.Timer()
 
@@ -13,6 +15,8 @@ class TemporaryData:
         self.event_order = None
         self.special_listener_type = None
         self.bindings = []
+        self.macros = []
+        self.new_binding = None
         self.settings = [True, True, True, True, True]
         self.killkey_type = int
         self.killkey = None
@@ -53,15 +57,16 @@ def special_on_move(x, y):
         mouse_listener.stop_listener()
         temporary_data.killkey = 67
         temporary_data.killkey_type = 3
+        Utils.show_messagebox("NewKillkey")
 
     elif temporary_data.special_listener_type == 1:
-        mouse_listener.stop_listener()
-        temporary_data.bindings.append(67)
+        kill_special_listeners()
+        temporary_data.new_binding = 67
+        Utils.show_messagebox("NewBinding")
 
-    else:
+    elif 67 in temporary_data.bindings:
         # bindings are active
-        if 67 in temporary_data.bindings:
-            print("executing macro")
+        print("executing macro")
 
 
 def special_on_click(x, y, button, pressed):
@@ -69,13 +74,15 @@ def special_on_click(x, y, button, pressed):
         mouse_listener.stop_listener()
         temporary_data.killkey = Utils.special_keys.index(button)
         temporary_data.killkey_type = 2
+        Utils.show_messagebox("NewKillkey")
 
     elif temporary_data.special_listener_type == 1:
-        mouse_listener.stop_listener()
-        temporary_data.bindings.append(Utils.special_keys.index(button))
+        kill_special_listeners()
+        temporary_data.new_binding = Utils.special_keys.index(button)
+        Utils.show_messagebox("NewBinding")
 
-    else:
-        pass
+    elif Utils.special_keys.index(button) in temporary_data.bindings:
+        print("executing macro")
 
 
 def special_on_scroll(x, y, dx, dy):
@@ -83,13 +90,15 @@ def special_on_scroll(x, y, dx, dy):
         mouse_listener.stop_listener()
         temporary_data.killkey = [dx, dy]
         temporary_data.killkey_type = 4
+        Utils.show_messagebox("NewKillkey")
 
     elif temporary_data.special_listener_type == 1:
-        mouse_listener.stop_listener()
-        temporary_data.bindings.append([dx, dy])
+        kill_special_listeners()
+        temporary_data.new_binding = [dx, dy]
+        Utils.show_messagebox("NewBinding")
 
-    else:
-        pass
+    elif [dx, dy] in temporary_data.bindings:
+        print("executing macro")
 
 
 # Killkey Keyboard
@@ -102,13 +111,27 @@ def special_on_press(key):
 
         else:
             temporary_data.killkey_type = 1
+        Utils.show_messagebox("NewKillkey")
 
     elif temporary_data.special_listener_type == 1:
-        keyboard_listener.stop_listener()
-        temporary_data.bindings.append(key)
+        kill_special_listeners()
+        if key in Utils.special_keys:
+            temporary_data.new_binding = Utils.special_keys.index(key)
 
-    else:
-        pass
+        else:
+            temporary_data.new_binding = key.char
+        Utils.show_messagebox("NewBinding")
+
+    try:
+        if key.char in temporary_data.bindings:
+            print("dsfsadfadsfasdfasd")
+            data = Utils.get_macro_from_file()
+            MacroHandler(Utils.Interpreter(data[0], data[1]).sort_for_controller, data[1]).execute_macro()
+
+    except:
+        if Utils.special_keys.index(key) in temporary_data.bindings:
+            data = Utils.get_macro_from_file(os.path.abspath(f"Macros/{temporary_data.macros[temporary_data.bindings.index(Utils.special_keys.index(key))]}"))
+            MacroHandler(Utils.Interpreter(data[0], data[1]).sort_for_controller(), data[1]).execute_macro()
 
 
 # Regular Listeners
@@ -138,8 +161,8 @@ def on_click(x, y, button, pressed):
 
 
 def on_scroll(x, y, dx, dy):
-    if type(temporary_data.killkey) == list:
-        pass
+    if temporary_data.killkey == [dx, dy]:
+        kill_listeners()
 
     else:
         timer.record_event_time([dx, dy], 1)
@@ -171,7 +194,13 @@ def on_release(key):
             timer.record_end_time(special_key_index)
 
 
-# This function is used to kill both listeners at the command of one function
+# This function is used to kill both special listeners
+def kill_special_listeners():
+    keyboard_listener.stop_listener()
+    mouse_listener.stop_listener()
+
+
+# This function is used to kill both macro listeners
 def kill_listeners():
     temporary_data.mouse_movement_i = 1
     timer.killkey_force_log(temporary_data.settings)
