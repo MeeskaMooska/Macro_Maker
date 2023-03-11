@@ -49,6 +49,19 @@ def get_binding_from_file(path):
         return data['binding']
 
 
+# Designed to find the x occurrence of a value in the event order list
+def find_x_occurrence(value, x, event_order):
+    count = 0
+    # Enumerates through event_order
+    for index, item in enumerate(event_order):
+        # Evaluates value of item
+        if item == value:
+            count += 1
+            if count == x:
+                event_order.pop(index)
+    return event_order
+
+
 def show_messagebox(message):
     if message == "ListenerAlreadyRunning":
         tkinter.messagebox.showerror("Error.",
@@ -60,7 +73,6 @@ def show_messagebox(message):
 
     elif message == "NewKillkey":
         tkinter.messagebox.showinfo("New Killkey.", "Your killkey has been assigned successfully.")
-
     elif message == "NewBinding":
         tkinter.messagebox.showinfo("New Binding.", "Your binding has been assigned successfully.")
 

@@ -55,7 +55,9 @@ def record_special_input_pressed(special_type):
                 Listener.mouse_listener.listener.start()
 
         else:
+            activate_bindings_button.config(text="Deactivate Bindings")
             Listener.temporary_data.macros = temporary_data.macros
+            Listener.temporary_data.bindings.clear()
             for file in temporary_data.macros:
                 Listener.temporary_data.bindings.append(Utils.get_binding_from_file(os.path.abspath(f"Macros/{file}")))
             print(Listener.temporary_data.bindings)
@@ -68,7 +70,14 @@ def record_special_input_pressed(special_type):
 
     # If another listener was running we alert the user.
     else:
-        Utils.show_messagebox("ListenerAlreadyRunning")
+        if Listener.temporary_data.special_listener_type == 2:
+            Listener.temporary_data.special_listener_type = None
+            Listener.mouse_listener.stop_listener()
+            Listener.keyboard_listener.stop_listener()
+            activate_bindings_button.config(text = "Activate Bindings")
+
+        else:
+            Utils.show_messagebox("ListenerAlreadyRunning")
 
 
 def start_editor_view(from_button_press):
@@ -105,8 +114,10 @@ def start_editor_view(from_button_press):
 def listen_for_editor_view():
     while editor_view.running:
         time.sleep(.5)
+        print("running")
 
     else:
+        print("editor view killed")
         temporary_data.thread_listener = None
         config_macro_listbox()
 

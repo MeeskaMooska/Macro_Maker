@@ -24,6 +24,8 @@ as without this simply moving your mouse across a modern screen would record kil
 data that truly are not necessary. The default buffer is set to 101 movements because the buffer index
 is set to one and cannot be zero.
 
+The MacroHandler module has a variable at the top called maximum_key_tap_duration you can change this
+to your desired tap duration to ensure the macro does not confuse your taps with holds.
 
 #Issues:
 For some reason when the binding is set it runs the NewBinding message twice.

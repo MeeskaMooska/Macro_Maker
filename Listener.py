@@ -128,9 +128,11 @@ def special_on_press(key):
             data = Utils.get_macro_from_file()
             MacroHandler(Utils.Interpreter(data[0], data[1]).sort_for_controller, data[1]).execute_macro()
 
-    except:
+    except AttributeError:
+        print("it got here")
         if Utils.special_keys.index(key) in temporary_data.bindings:
             data = Utils.get_macro_from_file(os.path.abspath(f"Macros/{temporary_data.macros[temporary_data.bindings.index(Utils.special_keys.index(key))]}"))
+            print(Utils.Interpreter(data[0], data[1]).sort_for_controller(), data[1])
             MacroHandler(Utils.Interpreter(data[0], data[1]).sort_for_controller(), data[1]).execute_macro()
 
 

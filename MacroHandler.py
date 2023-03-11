@@ -1,7 +1,7 @@
 import time
 from pynput import mouse, keyboard
 from Utils import special_keys
-
+maximum_key_tap_duration = .18
 
 class MacroHandler:
     def __init__(self, data, order):
@@ -19,7 +19,7 @@ class MacroHandler:
             self.last_start_time = self.data[i][0]
             if self.order[i] in (0, 1):
                 # Anything longer than a .08 is no longer considered a tap.
-                if self.data[self.event_index][1] > .08:
+                if self.data[self.event_index][1] > maximum_key_tap_duration:
                     keyboard_input(self.data[self.event_index][-1], self.order[self.event_index],
                                    self.data[self.event_index][1] * 40)
 
@@ -81,4 +81,3 @@ def event_input(x, y, event_type):
 
     else:
         mouse_controller.scroll(x, y)
-

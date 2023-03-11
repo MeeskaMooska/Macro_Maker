@@ -122,6 +122,7 @@ class EditorView:
             Utils.show_messagebox("NewBinding")
 
     def delete_selected(self):
+        self.event_order = Utils.find_x_occurrence(self.selected_index[0], self.selected_index[1], self.event_order)
         self.listbox_list[self.selected_index[0]].delete(self.selected_index[1])
         self.logging_data[self.selected_index[0]].pop(int(self.selected_index[1]))
 
